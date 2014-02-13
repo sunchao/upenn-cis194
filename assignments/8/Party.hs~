@@ -1,0 +1,31 @@
+module Party where
+
+import Employee
+import Data.Monoid
+import Data.Tree
+
+glCons :: Employee -> GuestList -> GuestList
+glCons e (GL es f) = GL (e:es) (f + empFun e)
+
+
+instance Monoid GuestList where
+    mempty = GL [] 0
+    mappend (GL xs f1) (GL ys f2) = GL (xs ++ ys) (f1+f2)
+
+
+moreFun :: GuestList -> GuestList -> GuestList
+moreFun = max
+
+
+treeFold :: (a -> b -> b) -> b -> Tree a -> b
+treeFold f base Node { rootLabel = r, subForest = [] } = f r base
+treeFold f base Node { rootLabel = r, subForest = s }
+    = f r (foldl (treeFold f) base s)
+
+nextLevel :: Employee -> [(GuestList, GuestList)] -> (GuestList, GuestList)
+nextLevel emp xs = (glCons emp $ mconcat xs2, mconcat xs1)
+    where (xs1,xs2) = unzip xs
+
+
+maxFun :: Tree Employee -> GuestList
+maxFun 

@@ -1,0 +1,42 @@
+import Data.Monoid
+import Sized
+
+data JoinList m a = Empty
+                  | Single m a
+                  | Append m (JoinList m a) (JoinList m a)
+                    deriving (Eq, Show)
+
+(+++) :: Monoid m => JoinList m a -> JoinList m a -> JoinList m a
+ja +++ jb = Append ((tag ja) `mappend` (tag jb)) ja jb
+
+
+tag :: Monoid m => JoinList m a -> m
+tag Empty = mempty
+tag (Single m a) = m
+tag (Append m _ _) = m
+
+indexJ :: (Sized b, Monoid b) => Int -> JoinList b a -> Maybe a
+indexJ _ Empty = Nothing
+indexJ 0 (Single _ a) = Just a
+indexJ _ (Single _ _) = Nothing
+indexJ n (Append m ja jb)
+    | n < k = indexJ n ja
+    | otherwise = indexJ (n-k) jb
+    where k = getSize . size . tag $ ja
+
+dropJ :: (Sized b, Monoid b) => Int -> JoinList b a -> JoinList b a
+dropJ _ Empty = Empty
+dropJ 0 j = j
+dropJ n (Single _ _) = Empty
+dropJ n (Append m ja jb)
+    | n >= (getSize . size $ m) = Empty
+    | n >= k = dropJ (n - k) jb
+    | otherwise = Append m (dropJ n ja) jb
+    where k = getSize . size . tag $ ja
+
+takeJ :: (Sized b, Monoid b) => Int -> JoinList b a -> JoinList b a
+
+
+
+
+
